@@ -237,29 +237,94 @@ syms lambda t deltaT xk
 
 % Define r(K,xk,u)
 s = 2; %order dim
-n = 1  %state space dim
+n = 1;  %state space dim
 K = sym('K',[s,n]);
 A = sym('A', [s,s]);
 
-r = [f(xk + deltaT*A(1,1)*K(1) + deltaT*A(1,2)*K(2),u)-K(1);
-     f(xk + deltaT*A(2,1)*K(1) + deltaT*A(2,2)*K(2), lambda)-K(2)];
+r = [testfunction(xk + deltaT*A(1,1)*K(1,:) + deltaT*A(1,2)*K(2,:),lambda)-K(1,:);
+     testfunction(xk + deltaT*A(2,1)*K(1,:) + deltaT*A(2,2)*K(2,:), lambda)-K(2,:)];
 
 dr = jacobian(r,K)
 
-matlabFunction(r,dr, 'file', 'rdrIRK','vars',{deltaT,t,xk,K,A,lambda});
-clear delaT xk r dr 
+matlabFunction(r,dr, 'file', 'rdrIRK','vars',{deltaT,xk,K,A,lambda});
 
 
-xdot = lamda *x
+lambda = -2;
+deltaT= 0.1;
+tf = 10;
+xk = 1;
+A = BT_IRK4(1:end-1,2:end);
+b = BT_IRK4(3,2:end);
+nIRK = tf / deltaT;
+tIRK = zeros(nIRK,n);
+xIRK = zeros(nIRK,n);
+xIRK(1,:) = xk;
+tol = 10^-6;
+alfa = 1;
 
-f(x,u,t)
+
+for j = 1:nIRK
+    tIRK(j+1,1) = tIRK(j) + deltaT;
+    K_j  = [xIRK(j,1);xIRK(j,1)];
+    [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda)
+  while abs(r) > tol
+      [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda)
+      deltaK = -dr\r;
+      K_j  = K_j + alfa*deltaK; 
+  end
+  xIRK(j+1,:) = xIRK(j,:) + deltaT*K_j(1)*b(1) + deltaT*K_j(2)*b(2); 
+end
+
+figure
+subplot(2,1,1)
+plot(tIRK,xIRK,'-o')
 
 
+syms lambda t deltaT real
+xk = sym('xk',[2,1],'real');
+s = 2; %order dim
+n = 2;  %state space dim
+K = sym('K',[s,n],'real');
+A = sym('A', [s,s],'real');
+
+r_vdp = [vanderpol(t,xk + deltaT*A(1,1)*K(1,:)' + deltaT*A(1,2)*K(2,:)')-K(1,:)';
+        vanderpol(t, xk + deltaT*A(2,1)*K(1,:)' + deltaT*A(2,2)*K(2,:)')-K(2,:)'];
+K = reshape(K,[numel(K),1])
+dr_vdp = jacobian(r_vdp,K);
+
+matlabFunction(r_vdp,dr_vdp, 'file', 'rdrIRKvdp','vars',{deltaT,xk,K,A,t});
 
 
+lambda = -2;
+deltaT= 0.01;
+tf = 25;
+xk = [1 0];
+A = BT_IRK4(1:end-1,2:end);
+b = BT_IRK4(3,2:end);
+nIRK_vdp = tf / deltaT;
+tIRK_vdp = zeros(nIRK_vdp,n);
+xIRK_vdp = zeros(nIRK_vdp,n);
+xIRK_vdp(1,:) = xk;
+tol = 10^-6;
+alfa = 1;
 
 
+for j = 1:nIRK_vdp
+    tIRK_vdp(j+1,1) = tIRK_vdp(j) + deltaT;
+    K_j  = [xIRK_vdp(j,:),xIRK_vdp(j,:)]';
+    [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(j,:)',K_j, A, tIRK_vdp(j+1,1))
+  while abs(r) > tol
+      [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(j,:)',K_j, A, tIRK_vdp(j+1,1))
+      deltaK = -dr\r;
+      K_j  = K_j + alfa*deltaK; 
+  end
+    xIRK(j+1,:) = xIRK(j,:) + deltaT*K_j(1,:)*b(1) + deltaT*K_j(2,:)*b(2); 
+end
 
+
+hold on 
+subplot(2,1,2)
+plot(tIRK_vdp(:,1),xIRK_vdp,'-o')
 
 
 

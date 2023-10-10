@@ -1,4 +1,4 @@
- function dydt = vanderpol(t,y)
+function dydt = vanderpol(t,y)
 
 u=5;
 dydt = [y(2); 
