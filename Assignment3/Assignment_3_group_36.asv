@@ -233,7 +233,7 @@ BT_IRK4 = [1/2 - sqrt(3)/6, 1/4, 1/4 - sqrt(3)/6;
            1/2 + sqrt(3)/6, 1/4 + sqrt(3)/6, 1/4;
            0,               1/2,             1/2];
 
-syms lambda t deltaT xk
+syms lambda deltaT xk
 
 % Define r(K,xk,u)
 s = 2; %order dim
@@ -241,18 +241,16 @@ n = 1  %state space dim
 K = sym('K',[s,n]);
 A = sym('A', [s,s]);
 
-r = [f(xk + deltaT*A(1,1)*K(1) + deltaT*A(1,2)*K(2),u)-K(1);
+r = [f(xk + deltaT*A(1,1)*K(1) + deltaT*A(1,2)*K(2),lambda)-K(1);
      f(xk + deltaT*A(2,1)*K(1) + deltaT*A(2,2)*K(2), lambda)-K(2)];
 
 dr = jacobian(r,K)
 
-matlabFunction(r,dr, 'file', 'rdrIRK','vars',{deltaT,t,xk,K,A,lambda});
+matlabFunction(r,dr, 'file', 'rdrIRK','vars',{deltaT,t,xk,K,A});
 clear delaT xk r dr 
 
 
-xdot = lamda *x
 
-f(x,u,t)
 
 
 
