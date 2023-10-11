@@ -287,8 +287,8 @@ n = 2;  %state space dim
 K = sym('K',[s,n],'real');
 A = sym('A', [s,s],'real');
 
-r_vdp = [vanderpol(t,xk + deltaT*A(1,1)*K(1,:)' + deltaT*A(1,2)*K(2,:)')-K(1,:)';
-        vanderpol(t, xk + deltaT*A(2,1)*K(1,:)' + deltaT*A(2,2)*K(2,:)')-K(2,:)'];
+r_vdp = [vanderpol(t,xk + deltaT*A(1,1)*K(:,1) + deltaT*A(1,2)*K(:,2))-K(:,1);
+        vanderpol(t, xk + deltaT*A(2,1)*K(:,1) + deltaT*A(2,2)*K(:,2))-K(:,2)];
 K = reshape(K,[numel(K),1])
 dr_vdp = jacobian(r_vdp,K);
 
@@ -303,22 +303,24 @@ A = BT_IRK4(1:end-1,2:end);
 b = BT_IRK4(3,2:end);
 nIRK_vdp = tf / deltaT;
 tIRK_vdp = zeros(nIRK_vdp,n);
-xIRK_vdp = zeros(nIRK_vdp,n);
-xIRK_vdp(1,:) = xk;
+xIRK_vdp = zeros(n,nIRK_vdp);
+xIRK_vdp(:,1) = xk;
 tol = 10^-6;
 alfa = 1;
 
 
 for j = 1:nIRK_vdp
     tIRK_vdp(j+1,1) = tIRK_vdp(j) + deltaT;
-    K_j  = [xIRK_vdp(j,:),xIRK_vdp(j,:)]';
-    [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(j,:)',K_j, A, tIRK_vdp(j+1,1))
+    K_j  = [xIRK_vdp(:,j)',xIRK_vdp(:,j)']';
+    [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
   while abs(r) > tol
-      [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(j,:)',K_j, A, tIRK_vdp(j+1,1))
+      [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
       deltaK = -dr\r;
       K_j  = K_j + alfa*deltaK; 
+      
   end
-    xIRK(j+1,:) = xIRK(j,:) + deltaT*K_j(1,:)*b(1) + deltaT*K_j(2,:)*b(2); 
+    K_j = reshape(K_j,[],2);
+    xIRK_vdp(:,j+1) = xIRK_vdp(:,j) + deltaT*K_j(:,1)*b(1) + deltaT*K_j(:,2)*b(2); 
 end
 
 
