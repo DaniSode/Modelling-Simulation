@@ -244,7 +244,7 @@ A = sym('A', [s,s]);
 r = [testfunction(xk + deltaT*A(1,1)*K(1,:) + deltaT*A(1,2)*K(2,:),lambda)-K(1,:);
      testfunction(xk + deltaT*A(2,1)*K(1,:) + deltaT*A(2,2)*K(2,:), lambda)-K(2,:)];
 
-dr = jacobian(r,K)
+dr = jacobian(r,K);
 
 matlabFunction(r,dr, 'file', 'rdrIRK','vars',{deltaT,xk,K,A,lambda});
 
@@ -268,7 +268,7 @@ for j = 1:nIRK
     K_j  = [xIRK(j,1);xIRK(j,1)];
     [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda)
   while abs(r) > tol
-      [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda)
+      [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda);
       deltaK = -dr\r;
       K_j  = K_j + alfa*deltaK; 
   end
@@ -278,6 +278,7 @@ end
 figure
 subplot(2,1,1)
 plot(tIRK,xIRK,'-o')
+title('Solution of testfunction using IRK4');
 
 
 syms lambda t deltaT real
@@ -289,19 +290,18 @@ A = sym('A', [s,s],'real');
 
 r_vdp = [vanderpol(t,xk + deltaT*A(1,1)*K(:,1) + deltaT*A(1,2)*K(:,2))-K(:,1);
         vanderpol(t, xk + deltaT*A(2,1)*K(:,1) + deltaT*A(2,2)*K(:,2))-K(:,2)];
-K = reshape(K,[numel(K),1])
+K = reshape(K,[numel(K),1]);
 dr_vdp = jacobian(r_vdp,K);
 
 matlabFunction(r_vdp,dr_vdp, 'file', 'rdrIRKvdp','vars',{deltaT,xk,K,A,t});
 
 
-lambda = -2;
-deltaT= 0.01;
+deltaT2= 0.01;
 tf = 25;
 xk = [1 0];
 A = BT_IRK4(1:end-1,2:end);
 b = BT_IRK4(3,2:end);
-nIRK_vdp = tf / deltaT;
+nIRK_vdp = tf / deltaT2;
 tIRK_vdp = zeros(nIRK_vdp,n);
 xIRK_vdp = zeros(n,nIRK_vdp);
 xIRK_vdp(:,1) = xk;
@@ -310,23 +310,52 @@ alfa = 1;
 
 
 for j = 1:nIRK_vdp
-    tIRK_vdp(j+1,1) = tIRK_vdp(j) + deltaT;
+    tIRK_vdp(j+1,1) = tIRK_vdp(j) + deltaT2;
     K_j  = [xIRK_vdp(:,j)',xIRK_vdp(:,j)']';
-    [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
+    [r,dr] = rdrIRKvdp(deltaT2,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
   while abs(r) > tol
-      [r,dr] = rdrIRKvdp(deltaT,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
+      [r,dr] = rdrIRKvdp(deltaT2,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
       deltaK = -dr\r;
       K_j  = K_j + alfa*deltaK; 
       
   end
     K_j = reshape(K_j,[],2);
-    xIRK_vdp(:,j+1) = xIRK_vdp(:,j) + deltaT*K_j(:,1)*b(1) + deltaT*K_j(:,2)*b(2); 
+    xIRK_vdp(:,j+1) = xIRK_vdp(:,j) + deltaT2*K_j(:,1)*b(1) + deltaT2*K_j(:,2)*b(2); 
 end
 
 
 hold on 
 subplot(2,1,2)
 plot(tIRK_vdp(:,1),xIRK_vdp,'-o')
+title('Solution of van der pol using IRK4');
+
+
+%% VS RK4
+
+[tRK4_4,xRK4_4] = RK4vanderpol(tf, deltaT2, xk, BT_RK4);
+
+figure
+plot(tRK4_4,xRK4_4,'r')
+hold on
+plot(tIRK_vdp(:,1),xIRK_vdp,'b')
+xlabel('Time t');
+ylabel('Solution y');
+legend('y_1 IRK4','y_2 IRK4','y_1 RK4','y_2 RK4')
+title('Solution of van der Pol Equation with IRK4 and RK4');
+
+
+maxl = -10000;
+lam = linspace(maxl,0,100);
+R = zeros(length(lam),1);
+for l = 1:length(lam) 
+        R_k = 1 + lam(l)*deltaT2*b*pinv(eye(2)-lam(l)*deltaT2*A)*ones(2,1);
+        R(l) = norm(R_k);
+end
+
+figure
+plot(lam, R)
+
+
 
 
 
