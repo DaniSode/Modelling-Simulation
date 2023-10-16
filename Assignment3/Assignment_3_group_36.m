@@ -14,53 +14,51 @@ clear all; close all; clc
 
 %% Task 2
 
-%% Defining initial values
-%unstable RK1 & RK2 = ||-20||
-%unstable RK4 = ||-28||
-lambda = -10;
+%% Defining functions for RK1, RK2, RK4 which are tested and ploted 
+% Defining initial values
+lambda = -2;
 x0 = 1;
-%% Simulation parameters:
-tFinal  = 5;
-deltaT   = [0.001, 0.01, 0.1];
 
-%% The exact Solution:
+% Simulation parameters:
+tFinal  = 5;
+deltaT   = 0.1;
+
+% The exact Solution:
 tExact = 0:0.01:tFinal;
 xExact = x0*exp(lambda*tExact);
 
-%% RK1
+
+% RK1
+
+% Butchers table
 c1= 0;
 b1 = 1;
-%Butchers table
 BT_RK1 = [c1 0;
           0 b1];
-tRK1_alld = zeros(1,3);
-xRK1_alld = zeros(1,3);
-for i = 1:length(deltaT)
-    [tRK1,xRK1] = RK1(tFinal, deltaT(i), x0, lambda, BT_RK1);
-    tRK1_alld(1:length(tRK1),i) = tRK1;
-    xRK1_alld(1:length(xRK1),i) = xRK1;
-end
 
-%% RK2
+% Testing RK1
+[tRK1,xRK1] = RK1(tFinal, deltaT, x0, lambda, BT_RK1);
+
+
+% RK2
+
+%Butchers table
 a = 1/2;
 c1= 0;
 c2 = 1/2;
 b1 = 0;
-b2 = 1;
-      
+b2 = 1;    
 BT_RK2 = [c1 0 0;
       c2 a 0;
       0 b1 b2];
 
-tRK2_alld = zeros(1,3);
-xRK2_alld = zeros(1,3);
+% Testing RK2
+[tRK2,xRK2] = RK2(tFinal, deltaT, x0, lambda, BT_RK2);
 
-for i = 1:length(deltaT)
-    [tRK2,xRK2] = RK2(tFinal, deltaT(i), x0, lambda, BT_RK2);
-    tRK2_alld(1:length(tRK2),i) = tRK2;
-    xRK2_alld(1:length(xRK2),i) = xRK2;
-end
-%% RK4
+
+% RK4
+
+% Butchers table
 a1 = 1/2;
 a2 = 1/2;
 a3 = 1;
@@ -72,23 +70,16 @@ b1 = 1/6;
 b2 = 1/3;
 b3 = 1/3;
 b4 = 1/6;
-
-%Butchers table
 BT_RK4 = [c1 0 0 0 0;
           c2 a1 0 0 0;
           c3 0 a2 0 0;
           c4 0 0 a3 0;
           0 b1 b2 b3 b4];
 
-tRK4_alld = zeros(1,3);
-xRK4_alld = zeros(1,3);
+% Testing RK4
+[tRK4,xRK4] = RK4(tFinal, deltaT, x0, lambda, BT_RK4);
 
-for i = 1:length(deltaT)
-    [tRK4,xRK4] = RK4(tFinal, deltaT(i), x0, lambda, BT_RK4);
-    tRK4_alld(1:length(tRK4),i) = tRK4;
-    xRK4_alld(1:length(xRK4),i) = xRK4;
-end
-%% Plotting:
+% Plotting:
 figure
 subplot(1,3,1)
 plot(tExact, xExact,'markersize',20)
@@ -96,6 +87,7 @@ hold on
 plot(tRK1,xRK1,'marker','.','markersize',10)
 xlabel('t');
 ylabel('x');
+title('RK1')
 legend('Exact','RK1')
 
 subplot(1,3,2)
@@ -104,6 +96,7 @@ hold on
 plot(tRK2,xRK2,'marker','.','markersize',10)
 xlabel('t');
 ylabel('x');
+title('RK2')
 legend('Exact','RK2')
 
 subplot(1,3,3)
@@ -112,50 +105,59 @@ hold on
 plot(tRK4,xRK4,'marker','.','markersize',10)
 xlabel('t');
 ylabel('x');
+title('RK4')
 legend('Exact','RK4')
 
-%% Compute error
-err = zeros(3,length(deltaT));
 
-err(1,3) = norm(xRK1_alld(21,3)-xExact(end),inf);
-err(1,2) = norm(xRK1_alld(201,2)-xExact(end),inf);
-err(1,1) = norm(xRK1_alld(end,1)-xExact(end),inf);
-err(2,3) = norm(xRK2_alld(21,3)-xExact(end),inf);
-err(2,2) = norm(xRK2_alld(201,2)-xExact(end),inf);
-err(2,1) = norm(xRK2_alld(end,1)-xExact(end),inf);
-err(3,3) = norm(xRK4_alld(21,3)-xExact(end),inf);
-err(3,2) = norm(xRK4_alld(201,2)-xExact(end),inf);
-err(3,1) = norm(xRK4_alld(end,1)-xExact(end),inf);
+%% Compute error with different deltaT and plot
 
-figure(2);
-loglog(deltaT,err(1,:),'marker','.','markersize',15)
-hold on
-loglog(deltaT,err(2,:),'marker','.','markersize',15)
-loglog(deltaT,err(3,:),'marker','.','markersize',15)
+deltaTs = [0.0001, 0.001, 0.01, 0.1];
+errorRK1 = zeros(1, length(deltaTs));
+errorRK2 = zeros(1, length(deltaTs));
+errorRK4 = zeros(1, length(deltaTs));
 
-grid on
+for i = 1:length(deltaTs)
+    [t1,xRK1] = RK1(tFinal, deltaTs(i), x0, lambda, BT_RK1);
+    [t2,xRK2] = RK2(tFinal, deltaTs(i), x0, lambda, BT_RK2);
+    [t4,xRK4] = RK4(tFinal, deltaTs(i), x0, lambda, BT_RK4);
+    errorRK1(i) = norm(xRK1(end)-xExact(end),inf);
+    errorRK2(i) = norm(xRK2(end)-xExact(end),inf);
+    errorRK4(i) = norm(xRK4(end)-xExact(end),inf);
+end
+
+figure
+loglog(deltaTs,errorRK1,'marker','.','markersize',15)
+hold on; grid on
+loglog(deltaTs,errorRK2,'marker','.','markersize',15)
+loglog(deltaTs,errorRK4,'marker','.','markersize',15)
+
 set(gca,'XDir','reverse')
 legend('RK1', 'RK2', 'RK4')
 xlabel('dt')
 ylabel('Error')
+title('Error vs different delta Ts')
 
-%% Stability using R-formula
-% syms lambda lambda_RK2 negative real
-% my = lambda*deltaT(end);
-% 
-% b1 = BT_RK1(2,2:end);
-% A = BT_RK1(1,2:end);
-% R = 1 + my*b1.'*inv(eye(1)-my*A)*ones(1,1);
-% lam1 = solve(R<=-1,lambda)
-% 
-% my_RK2 = lambda_RK2*deltaT(end);
-% b2 = BT_RK2(3,2:end);
-% A2 = BT_RK2(1:2,2:end);
-% R2 = 1 + my_RK2*b2*((eye(2)-my_RK2*A2)^-1*ones(2,1));
-% lam2 = solve(R<=-1,lambda_RK2)
 
-%% Using S-function
-orders = [1, 2, 4];
+%% Stability with print and plot
+
+% Define syms and needed variables
+orders = [1 2 4];
+solution = zeros(length(orders));
+syms lambda
+
+% Calculate sum and look for stability using formula from 7.41 page 170
+for i = 1:length(orders)
+    summation = 0; 
+    for j = 0:orders(i)   
+        summation = summation + ((lambda*deltaT)^j/factorial(j));
+    end
+    summation = abs(summation);
+solution(i) = double(solve(summation==1, lambda<0));
+end
+solution = solution(:,1);
+fprintf('The minimum lambda for which the solution is still stable\nis shown down below, for RK1, RK2 and RK4 respective:\n'); disp(solution)
+
+% Showing solution as graphs
 maxl = -50;
 lam = linspace(maxl,0,100);
 summation = zeros(length(lam),length(orders));
@@ -166,37 +168,36 @@ for i = 1:length(orders)
             summation(l,i) = summation(l,i) + ((lam(l)*deltaT(end))^k)/factorial(k);
         end
         summation(l,i) = abs(summation(l,i));
-%         
-%         if summation(l,i) < -1
-%             fprintf('\nFor order %.f the solution becomes unstable at lambda = %.f\n\n' , orders(i), lam(l))
-%             break
-%         end
-%         if lam == 0
-%             disp('Increase max lambda')
-%         end
     end
 end
 
 figure
 plot(lam,summation(:,1))
-hold on
+hold on; grid on
 plot(lam,summation(:,2))
 plot(lam,summation(:,3))
+plot(lam, ones(length(lam)),'k')
+xlabel('lambda'); ylabel('S'); title('Stability graphs') 
+legend('RK1', 'RK2', 'RK4', 'Threshold')
 
-%% Q3 - Solving van der pol with ode45
-y0= [0 1];
+
+%% Solving van der pol with ode45
+y0 = [0 1];
 tf = [0 25];
-[t,y] = ode45(@vanderpol, tf,y0);
+[t,y] = ode45(@vanderpol, tf, y0, odeset());
 
 figure
-subplot(2,1,1)
-plot(t,y(:,1),'-o',t,y(:,2),'-o')
+plot(t,y)
+grid on
 title('Solution of van der Pol Equation with ODE45');
-xlabel('Time t');
-ylabel('Solution y');
+xlabel('t');
+ylabel('y');
 legend('y_1','y_2')
 
-%% Solving vdp with RK4
+
+%% Solving van der pol with RK4
+
+% Butchers table
 a1 = 1/2;
 a2 = 1/2;
 a3 = 1;
@@ -208,31 +209,36 @@ b1 = 1/6;
 b2 = 1/3;
 b3 = 1/3;
 b4 = 1/6;
-
-%Butchers table
 BT_RK4 = [c1 0 0 0 0;
           c2 a1 0 0 0;
           c3 0 a2 0 0;
           c4 0 0 a3 0;
           0 b1 b2 b3 b4];
 
-
-[tRK4,xRK4] = RK4vanderpol(tf(2), deltaT(end), y0, BT_RK4);
+% Solving
+% Try different delta Ts
+deltaTt = 0.01;
+[tRK4,xRK4] = RK4vanderpol(tf(2), deltaTt, y0, BT_RK4);
    
-hold on
-subplot(2,1,2)
-plot(tRK4,xRK4(:,1),'-o',t,y(:,2),'-o')
-title('Solution of van der Pol Equation with RK4');
-xlabel('Time t');
-ylabel('Solution y');
-legend('y_1','y_2')
+% Plot
+figure
+[t,y] = ode45(@vanderpol, tf, y0, odeset('AbsTol',1e-8,'RelTol',1e-8));
+plot(tRK4,xRK4,'b',t,y,'r')
+grid on; axis tight
+title('Solution of van der Pol Equation vs RK4');
+xlabel('t');
+ylabel('y');
+legend('xRK4_1','xRK4_2', 'y_1', 'y_2')
 
-%% Q4 -IRK
 
+%% IRK
+
+% Butchers table
 BT_IRK4 = [1/2 - sqrt(3)/6, 1/4, 1/4 - sqrt(3)/6;
            1/2 + sqrt(3)/6, 1/4 + sqrt(3)/6, 1/4;
            0,               1/2,             1/2];
 
+% Define needed syms
 syms lambda t deltaT xk
 
 % Define r(K,xk,u)
@@ -241,14 +247,16 @@ n = 1;  %state space dim
 K = sym('K',[s,n]);
 A = sym('A', [s,s]);
 
+% Define r and dr 
 r = [testfunction(xk + deltaT*A(1,1)*K(1,:) + deltaT*A(1,2)*K(2,:),lambda)-K(1,:);
      testfunction(xk + deltaT*A(2,1)*K(1,:) + deltaT*A(2,2)*K(2,:), lambda)-K(2,:)];
 
 dr = jacobian(r,K);
 
+% Define function
 matlabFunction(r,dr, 'file', 'rdrIRK','vars',{deltaT,xk,K,A,lambda});
 
-
+% Define needed variables
 lambda = -2;
 deltaT= 0.1;
 tf = 10;
@@ -262,11 +270,11 @@ xIRK(1,:) = xk;
 tol = 10^-6;
 alfa = 1;
 
-
+% Using formula on page 180 to calcualte r until tolerance reached 
 for j = 1:nIRK
     tIRK(j+1,1) = tIRK(j) + deltaT;
     K_j  = [xIRK(j,1);xIRK(j,1)];
-    [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda)
+    [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda);
   while abs(r) > tol
       [r,dr] = rdrIRK(deltaT,xIRK(j,1),K_j,A,lambda);
       deltaK = -dr\r;
@@ -275,12 +283,7 @@ for j = 1:nIRK
   xIRK(j+1,:) = xIRK(j,:) + deltaT*K_j(1)*b(1) + deltaT*K_j(2)*b(2); 
 end
 
-figure
-subplot(2,1,1)
-plot(tIRK,xIRK,'-o')
-title('Solution of testfunction using IRK4');
-
-
+% Define needed syms
 syms lambda t deltaT real
 xk = sym('xk',[2,1],'real');
 s = 2; %order dim
@@ -288,15 +291,17 @@ n = 2;  %state space dim
 K = sym('K',[s,n],'real');
 A = sym('A', [s,s],'real');
 
+% Define r and dr for vdp
 r_vdp = [vanderpol(t,xk + deltaT*A(1,1)*K(:,1) + deltaT*A(1,2)*K(:,2))-K(:,1);
         vanderpol(t, xk + deltaT*A(2,1)*K(:,1) + deltaT*A(2,2)*K(:,2))-K(:,2)];
 K = reshape(K,[numel(K),1]);
 dr_vdp = jacobian(r_vdp,K);
 
+% Define function
 matlabFunction(r_vdp,dr_vdp, 'file', 'rdrIRKvdp','vars',{deltaT,xk,K,A,t});
 
-
-deltaT2= 0.01;
+% Define needed variables
+deltaT2 = 0.01;
 tf = 25;
 xk = [1 0];
 A = BT_IRK4(1:end-1,2:end);
@@ -308,7 +313,7 @@ xIRK_vdp(:,1) = xk;
 tol = 10^-6;
 alfa = 1;
 
-
+% Using fomrula on page 180
 for j = 1:nIRK_vdp
     tIRK_vdp(j+1,1) = tIRK_vdp(j) + deltaT2;
     K_j  = [xIRK_vdp(:,j)',xIRK_vdp(:,j)']';
@@ -316,19 +321,25 @@ for j = 1:nIRK_vdp
   while abs(r) > tol
       [r,dr] = rdrIRKvdp(deltaT2,xIRK_vdp(:,j),K_j, A, tIRK_vdp(j,1));
       deltaK = -dr\r;
-      K_j  = K_j + alfa*deltaK; 
-      
+      K_j  = K_j + alfa*deltaK;  
   end
     K_j = reshape(K_j,[],2);
     xIRK_vdp(:,j+1) = xIRK_vdp(:,j) + deltaT2*K_j(:,1)*b(1) + deltaT2*K_j(:,2)*b(2); 
 end
 
 
-hold on 
-subplot(2,1,2)
-plot(tIRK_vdp(:,1),xIRK_vdp,'-o')
-title('Solution of van der pol using IRK4');
+%% Stability
+maxl = -10000;
+lam = linspace(maxl,0,100);
+R = zeros(length(lam),1);
+for l = 1:length(lam) 
+        R_k = 1 + lam(l)*deltaT2*b*pinv(eye(2)-lam(l)*deltaT2*A)*ones(2,1);
+        R(l) = norm(R_k);
+end
 
+figure
+plot(lam, R)
+xlabel('lambda'); ylabel('R'); title('Stability for IRK')
 
 %% VS RK4
 
@@ -342,18 +353,9 @@ xlabel('Time t');
 ylabel('Solution y');
 legend('y_1 IRK4','y_2 IRK4','y_1 RK4','y_2 RK4')
 title('Solution of van der Pol Equation with IRK4 and RK4');
+axis tight
 
 
-maxl = -10000;
-lam = linspace(maxl,0,100);
-R = zeros(length(lam),1);
-for l = 1:length(lam) 
-        R_k = 1 + lam(l)*deltaT2*b*pinv(eye(2)-lam(l)*deltaT2*A)*ones(2,1);
-        R(l) = norm(R_k);
-end
-
-figure
-plot(lam, R)
 
 
 
