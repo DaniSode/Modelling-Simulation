@@ -18,12 +18,11 @@ tRK4 = zeros(nRK4,1);
 xRK4 = zeros(nRK4,1);
 xRK4(1) = x_0;
 
-
 for j = 1:nRK4
     tRK4(j+1) = tRK4(j) + deltaT;
     K1 = testfunction(xRK4(j), lambda + c1*deltaT);
-    K2 = testfunction(xRK4(j)+a1*deltaT*K1, lambda + c2*deltaT);
-    K3 = testfunction(xRK4(j)+a2*deltaT*K2, lambda + c3*deltaT);
+    K2 = testfunction(xRK4(j)+a1*deltaT*K1/2, lambda + c2*deltaT/2);
+    K3 = testfunction(xRK4(j)+a2*deltaT*K2/2, lambda + c3*deltaT);
     K4 = testfunction(xRK4(j)+a3*deltaT*K3, lambda + c4*deltaT);
     xRK4(j+1) = xRK4(j) + deltaT * b1 * K1 + deltaT * b2 * K2 + deltaT * b3 * K3 + deltaT * b4 * K4;
 end

@@ -24,8 +24,8 @@ tFinal  = 2;
 deltaT   = 0.1;
 
 % The exact Solution:
-tExact = 0:10^-6:tFinal;
-xExact = x0*exp(lambda*tExact);
+tExact = 0:0.1:tFinal;
+xExact = x0*exp(-lambda*tExact);
 
 
 % RK1
@@ -119,9 +119,9 @@ for i = 1:length(deltaTs)
     [t1,xRK1] = RK1(tFinal, deltaTs(i), x0, lambda, BT_RK1);
     [t2,xRK2] = RK2(tFinal, deltaTs(i), x0, lambda, BT_RK2);
     [t4,xRK4] = RK4(tFinal, deltaTs(i), x0, lambda, BT_RK4);
-    errorRK1(i) = norm(xRK1(end)-xExact(end),inf)
-    errorRK2(i) = norm(xRK2(end)-xExact(end),inf)
-    errorRK4(i) = norm(xRK4(end)-xExact(end),inf)
+    errorRK1(i) = norm(xRK1(end)-xExact(end),inf);
+    errorRK2(i) = norm(xRK1(end)-xExact(end),inf);
+    errorRK4(i) = norm(xRK4(end)-xExact(end),inf);
 end
 
 figure
