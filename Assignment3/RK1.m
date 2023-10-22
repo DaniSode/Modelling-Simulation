@@ -10,7 +10,7 @@ xRK1(1) = x_0;
 
 for j = 1:nRK1
     tRK1(j+1) = tRK1(j) + deltaT;
-    K1 = testfunction(xRK1(j), lambda + c1*deltaT);
+    K1 = testfunction(xRK1(j), lambda);
     xRK1(j+1) = xRK1(j) + deltaT * b1 * K1 ;
 end
 

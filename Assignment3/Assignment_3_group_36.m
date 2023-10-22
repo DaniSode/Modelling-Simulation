@@ -110,7 +110,7 @@ legend('Exact','RK4')
 
 
 %% Compute error with different deltaT and plot
-deltaTs = logspace(-4,-1,4);
+deltaTs = logspace(-3,-1,3);
 errorRK1 = zeros(1, length(deltaTs));
 errorRK2 = zeros(1, length(deltaTs));
 errorRK4 = zeros(1, length(deltaTs));
@@ -119,9 +119,12 @@ for i = 1:length(deltaTs)
     [t1,xRK1] = RK1(tFinal, deltaTs(i), x0, lambda, BT_RK1);
     [t2,xRK2] = RK2(tFinal, deltaTs(i), x0, lambda, BT_RK2);
     [t4,xRK4] = RK4(tFinal, deltaTs(i), x0, lambda, BT_RK4);
-    errorRK1(i) = norm(xRK1(end)-xExact(end),inf)
-    errorRK2(i) = norm(xRK2(end)-xExact(end),inf)
-    errorRK4(i) = norm(xRK4(end)-xExact(end),inf)
+    xExact_1 = x0*exp(lambda*t1);
+    xExact_2 = x0*exp(lambda*t2);
+    xExact_4 = x0*exp(lambda*t4);
+    errorRK1(i) = vpa(norm(xRK1(end)-xExact_1(end),inf),20);
+    errorRK2(i) = vpa(norm(xRK2(end)-xExact_2(end),inf),20);
+    errorRK4(i) = vpa(norm(xRK4(end)-xExact_4(end),inf),20);
 end
 
 figure
@@ -176,6 +179,7 @@ hold on; grid on
 plot(lam,summation(:,2))
 plot(lam,summation(:,3))
 plot(lam, ones(length(lam)),'k')
+scatter(solution, ones(length(solution)), 'ko')
 xlabel('lambda'); ylabel('S'); title('Stability graphs') 
 legend('RK1', 'RK2', 'RK4', 'Threshold')
 
@@ -197,7 +201,7 @@ legend('y_1','y_2')
 subplot(2,1,2)
 plot(diff(t))
 grid on; axis tight
-title('Discrete time-step of ode45 solution');
+title('Discrete time-step of ode45 function');
 xlabel('t');
 ylabel('deltaT');
 legend('Discrete time-steps')
@@ -230,6 +234,7 @@ deltaTt = 0.01;
    
 % Plot
 figure
+subplot(2,1,1)
 [t,y] = ode45(@vanderpol, tf, y0, odeset('AbsTol',1e-8,'RelTol',1e-8));
 plot(tRK4,xRK4,'b',t,y,'r')
 grid on; axis tight
@@ -237,6 +242,15 @@ title('Solution of van der Pol Equation vs RK4');
 xlabel('t');
 ylabel('y');
 legend('xRK4_1','xRK4_2', 'y_1', 'y_2')
+
+subplot(2,1,2)
+plot(diff(t))
+grid on; axis tight
+title('Discrete timestep of ode45 with higher tolerance');
+xlabel('t');
+ylabel('dt');
+legend('Discrete timestep')
+
 
 
 %% IRK
@@ -352,20 +366,23 @@ xlabel('lambda'); ylabel('R'); title('Stability for IRK')
 %% VS RK4
 
 [tRK4_4,xRK4_4] = RK4vanderpol(tf, deltaT2, xk, BT_RK4);
+[t,y] = ode45(@vanderpol, [0 tf], xk, odeset('AbsTol',1e-8,'RelTol',1e-8));
 
 figure
 subplot(2,1,1)
 plot(tRK4_4,xRK4_4,'r')
-hold on
+hold on; grid on
 plot(tIRK_vdp(:,1),xIRK_vdp,'b')
+plot(t, y, 'k')
 xlabel('Time t');
 ylabel('Solution y');
-legend('y_1 IRK4','y_2 IRK4','y_1 RK4','y_2 RK4')
+legend('y_1 IRK4','y_2 IRK4','y_1 RK4','y_2 RK4', 'y_1 true', 'y_2 true')
 title('Solution of van der Pol Equation with IRK4 and RK4');
 axis tight
 
 subplot(2,1,2)
 plot(tRK4_4, abs(xRK4_4'-xIRK_vdp))
+hold on; grid on
 xlabel('t');
 ylabel('y');
 legend('Error y_1', 'Error y_2')
